@@ -65,7 +65,7 @@ export function Frame({ children }: { children: React.ReactNode }) {
       </a>
       <header className="bar">
         <Link to="/" className="brand" aria-label="Pirotecnia Boom, inicio">
-          <img src={assetUrl("/marca/logo.jpeg")} alt="Pirotecnia Boom" width="78" height="52" />
+          <img src={assetUrl("/marca/logo.png")} alt="Pirotecnia Boom" width="78" height="52" />
         </Link>
         <nav className="nav" aria-label="Secciones">
           <NavLink to="/catalogo">Catálogo</NavLink>

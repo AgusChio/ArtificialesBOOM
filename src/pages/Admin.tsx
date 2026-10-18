@@ -18,7 +18,7 @@ const emptyProduct = (): Product => ({
   featured: false,
   pin: null,
   active: true,
-  image: "/productos/gorila-loco.jpeg",
+  image: "/productos/gorila-loco.png",
 });
 
 export function Admin() {

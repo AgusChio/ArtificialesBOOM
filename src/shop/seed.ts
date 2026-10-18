@@ -21,7 +21,7 @@ export const STARTER_PRODUCTS: Product[] = [
     featured: true,
     pin: 1,
     active: true,
-    image: "/productos/gorila-loco.jpeg",
+    image: "/productos/gorila-loco.png",
   },
   {
     code: "PA260",
@@ -39,7 +39,7 @@ export const STARTER_PRODUCTS: Product[] = [
     featured: true,
     pin: 2,
     active: true,
-    image: "/productos/impacto-austral.jpeg",
+    image: "/productos/impacto-austral.png",
   },
   {
     code: "F1190",
@@ -57,7 +57,7 @@ export const STARTER_PRODUCTS: Product[] = [
     featured: true,
     pin: 3,
     active: true,
-    image: "/productos/bateria.jpeg",
+    image: "/productos/bateria.png",
   },
   {
     code: "C8832",
@@ -75,7 +75,7 @@ export const STARTER_PRODUCTS: Product[] = [
     featured: true,
     pin: 4,
     active: true,
-    image: "/productos/volcan-dorado.jpeg",
+    image: "/productos/volcan-dorado.png",
   },
   {
     code: "F2257",
@@ -92,7 +92,7 @@ export const STARTER_PRODUCTS: Product[] = [
     featured: true,
     pin: 5,
     active: true,
-    image: "/productos/estrellita.jpeg",
+    image: "/productos/estrellita.png",
   },
   {
     code: "C8802",
@@ -109,7 +109,7 @@ export const STARTER_PRODUCTS: Product[] = [
     featured: false,
     pin: null,
     active: true,
-    image: "/productos/vacano.jpeg",
+    image: "/productos/vacano.png",
   },
   {
     code: "F9930",
@@ -127,7 +127,7 @@ export const STARTER_PRODUCTS: Product[] = [
     featured: false,
     pin: null,
     active: true,
-    image: "/productos/estallo.jpeg",
+    image: "/productos/estallo.png",
   },
   {
     code: "C7724",
@@ -145,7 +145,7 @@ export const STARTER_PRODUCTS: Product[] = [
     featured: false,
     pin: null,
     active: true,
-    image: "/productos/mariposa.jpeg",
+    image: "/productos/mariposa.png",
   },
   {
     code: "HM-BOLA",
@@ -163,7 +163,7 @@ export const STARTER_PRODUCTS: Product[] = [
     featured: false,
     pin: null,
     active: true,
-    image: "/productos/bola.jpeg",
+    image: "/productos/bola.png",
   },
   {
     code: "PB-01",
@@ -181,7 +181,7 @@ export const STARTER_PRODUCTS: Product[] = [
     featured: false,
     pin: null,
     active: true,
-    image: "/productos/pumball.jpeg",
+    image: "/productos/pumball.png",
   },
 ];
 

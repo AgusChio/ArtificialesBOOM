@@ -1,8 +1,7 @@
 /* ==========================================================================
    Pirotecnia Boom — sistema visual
    Claro por defecto (papel crema de mostrador), oscuro de noche de fuegos.
-   Las fotos de producto vienen sobre negro: viven siempre en "vitrinas"
-   oscuras, en los dos temas.
+   Imágenes y logo con fondo transparente sobre superficies suaves del tema.
    ========================================================================== */
 
 :root,
@@ -23,13 +22,14 @@
   --field: #ffd600;
   --field-ink: #1a1400;
   --blue: #1576c5;
-  --stage: #000000;
-  --stage-ink: #fff3c4;
+  --stage: #efe5cf;
+  --stage-ink: #1b150e;
   --input-bg: #fffdf7;
   --shadow-sm: 0 2px 6px -2px rgb(60 40 10 / 0.12);
   --shadow: 0 18px 40px -22px rgb(60 40 10 / 0.38);
   --shadow-lg: 0 30px 70px -30px rgb(60 30 0 / 0.45);
-  --glow: rgb(255 170 0 / 0.38);
+  --glow: rgb(255 170 0 / 0.32);
+  --cutout-shadow: drop-shadow(0 18px 26px rgb(40 24 6 / 0.22));
   color-scheme: light;
 }
 
@@ -47,13 +47,14 @@
   --accent-ink: #ffffff;
   --accent-text: #ff6a5c;
   --hero: #ffd600;
-  --stage: #000000;
-  --stage-ink: #fff3c4;
+  --stage: #1a1612;
+  --stage-ink: #fbf1d6;
   --input-bg: #120f0c;
   --shadow-sm: 0 2px 6px -2px rgb(0 0 0 / 0.5);
   --shadow: 0 18px 40px -22px rgb(0 0 0 / 0.8);
   --shadow-lg: 0 30px 70px -30px rgb(0 0 0 / 0.9);
-  --glow: rgb(255 120 0 / 0.32);
+  --glow: rgb(255 120 0 / 0.28);
+  --cutout-shadow: drop-shadow(0 20px 30px rgb(0 0 0 / 0.55));
   color-scheme: dark;
 }
 
@@ -157,20 +158,20 @@ input, textarea { caret-color: var(--accent); }
 }
 
 .brand {
-  display: block;
-  background: var(--stage);
-  border-radius: 14px;
-  padding: 4px 10px;
-  box-shadow: var(--shadow-sm);
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  padding: 2px 0;
   transition: transform 200ms var(--ease);
 }
 
-.brand:hover { transform: rotate(-2deg) scale(1.03); }
+.brand:hover { transform: rotate(-2deg) scale(1.05); }
 
 .brand img {
-  height: 46px;
+  height: 54px;
   width: auto;
   object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgb(27 21 14 / 0.14));
 }
 
 .nav {
@@ -403,6 +404,7 @@ input, textarea { caret-color: var(--accent); }
   display: grid;
   place-items: center;
   background: var(--stage);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
@@ -414,8 +416,8 @@ input, textarea { caret-color: var(--accent); }
   inset: 0;
   background:
     radial-gradient(48% 42% at 50% 58%, var(--glow), transparent 70%),
-    radial-gradient(30% 30% at 22% 20%, rgb(21 118 197 / 0.22), transparent 70%),
-    radial-gradient(28% 26% at 82% 26%, rgb(224 20 28 / 0.22), transparent 70%);
+    radial-gradient(30% 30% at 22% 20%, rgb(21 118 197 / 0.16), transparent 70%),
+    radial-gradient(28% 26% at 82% 26%, rgb(224 20 28 / 0.16), transparent 70%);
 }
 
 .pin-frame img {
@@ -423,7 +425,7 @@ input, textarea { caret-color: var(--accent); }
   width: 100%;
   height: 100%;
   object-fit: contain;
-  mix-blend-mode: lighten;
+  filter: var(--cutout-shadow);
 }
 
 .pin-caption {
@@ -434,12 +436,13 @@ input, textarea { caret-color: var(--accent); }
   margin: 0;
   padding: 4px 12px 4px 6px;
   border-radius: 999px;
-  background: rgb(0 0 0 / 0.72);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid var(--line);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   white-space: nowrap;
   font-weight: 700;
-  color: var(--stage-ink);
+  color: var(--ink);
   z-index: 2;
 }
 
@@ -547,6 +550,7 @@ input, textarea { caret-color: var(--accent); }
   position: sticky;
   top: calc(var(--bar) + 24px);
   background: var(--stage);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow);
@@ -557,6 +561,7 @@ input, textarea { caret-color: var(--accent); }
   aspect-ratio: 4 / 5;
   object-fit: contain;
   padding: 8%;
+  filter: var(--cutout-shadow);
 }
 
 .rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
@@ -613,6 +618,7 @@ input, textarea { caret-color: var(--accent); }
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--stage);
+  border: 1px solid var(--line);
 }
 
 .showcase > img {
@@ -623,6 +629,7 @@ input, textarea { caret-color: var(--accent); }
   object-fit: contain;
   object-position: 70% 50%;
   padding: 4% 0;
+  filter: var(--cutout-shadow);
 }
 
 .showcase-card {
@@ -658,6 +665,7 @@ input, textarea { caret-color: var(--accent); }
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--stage);
+  border: 1px solid var(--line);
   isolation: isolate;
 }
 
@@ -666,7 +674,9 @@ input, textarea { caret-color: var(--accent); }
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 10% 10% 34%;
+  filter: var(--cutout-shadow);
   transform: scale(1.02);
   transition: transform 900ms var(--ease);
 }
@@ -677,7 +687,7 @@ input, textarea { caret-color: var(--accent); }
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgb(0 0 0 / 0.86) 4%, rgb(0 0 0 / 0.2) 48%, transparent 70%);
+  background: linear-gradient(to top, color-mix(in srgb, var(--surface) 96%, transparent) 12%, color-mix(in srgb, var(--surface) 60%, transparent) 38%, transparent 62%);
   z-index: 0;
 }
 
@@ -687,12 +697,12 @@ input, textarea { caret-color: var(--accent); }
   right: 24px;
   bottom: 22px;
   z-index: 1;
-  color: #fff3c4;
+  color: var(--ink);
 }
 
 .verb h2 {
   margin: 0 0 6px;
-  color: var(--field);
+  color: var(--hero);
   font-size: clamp(56px, 6vw, 96px);
 }
 
@@ -786,6 +796,7 @@ input, textarea { caret-color: var(--accent); }
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--stage);
+  border: 1px solid var(--line);
   min-height: 86svh;
 }
 
@@ -794,9 +805,10 @@ input, textarea { caret-color: var(--accent); }
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: 30% 50%;
-  opacity: 0.92;
+  object-fit: contain;
+  object-position: 22% 50%;
+  padding: 5%;
+  filter: var(--cutout-shadow);
 }
 
 .visit article {
@@ -863,22 +875,26 @@ input, textarea { caret-color: var(--accent); }
 
 .faq-photos img {
   background: var(--stage);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
+  filter: var(--cutout-shadow);
 }
 
 .faq-photos img:first-child {
   width: 78%;
   margin-left: auto;
   aspect-ratio: 3 / 4;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 8%;
 }
 
 .faq-photos img:last-child {
   position: absolute;
   width: 46%;
   aspect-ratio: 1;
-  object-fit: cover;
+  object-fit: contain;
+  padding: 6%;
   left: 0;
   bottom: 0;
   border: 6px solid var(--bg);
@@ -1163,6 +1179,7 @@ textarea { min-height: 110px; resize: vertical; }
   aspect-ratio: 1;
   object-fit: contain;
   padding: 10%;
+  filter: var(--cutout-shadow);
   transition: transform 600ms var(--ease);
 }
 
@@ -1243,6 +1260,7 @@ textarea { min-height: 110px; resize: vertical; }
 
 .product-photo {
   background: var(--stage);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-lg);
@@ -1263,7 +1281,7 @@ textarea { min-height: 110px; resize: vertical; }
   aspect-ratio: 1;
   object-fit: contain;
   padding: 8%;
-  mix-blend-mode: lighten;
+  filter: var(--cutout-shadow);
 }
 
 .product-info { display: grid; justify-items: start; gap: 4px; }

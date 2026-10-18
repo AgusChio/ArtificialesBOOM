@@ -23,7 +23,7 @@ import type {
   Settings,
 } from "./types";
 
-const DB_KEY = "boom-db-v1";
+const DB_KEY = "boom-db-v2";
 const CART_KEY = "boom-cart-v1";
 const TOKEN_KEY = "boom-token-v1";
 

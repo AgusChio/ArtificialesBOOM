@@ -11,19 +11,19 @@ const VERBS = [
   {
     word: "Elegí",
     text: "Buscá el código que está impreso en la caja.",
-    image: "/productos/bateria.jpeg",
+    image: "/productos/bateria.png",
     alt: "Caja de batería F1190 con el código a la vista",
   },
   {
     word: "Anotá",
     text: "Sumá las cantidades. El total usa tu lista de precio.",
-    image: "/productos/impacto-austral.jpeg",
+    image: "/productos/impacto-austral.png",
     alt: "Torta Impacto Austral de 260 tiros",
   },
   {
     word: "Mandá",
     text: "El pedido se abre en WhatsApp con los códigos, la zona y el pago.",
-    image: "/productos/mariposa.jpeg",
+    image: "/productos/mariposa.png",
     alt: "Caja de mariposas C7724",
   },
 ];
@@ -297,7 +297,7 @@ export function Home() {
       )}
 
       <section className="visit">
-        <img src={assetUrl("/productos/impacto-austral.jpeg")} alt="Torta Impacto Austral, el tipo de caja que sale del mostrador" loading="lazy" />
+        <img src={assetUrl("/productos/impacto-austral.png")} alt="Torta Impacto Austral, el tipo de caja que sale del mostrador" loading="lazy" />
         <article>
           <h2>Pedidos en Salta</h2>
           <p>{settings.city}</p>
@@ -359,8 +359,8 @@ export function Home() {
           </Link>
         </div>
         <div className="faq-photos">
-          <img src={assetUrl("/productos/estrellita.jpeg")} alt="Caja de estrellitas F2257" loading="lazy" />
-          <img src={assetUrl("/productos/bola.jpeg")} alt="Bolas de humo multicolor" loading="lazy" />
+          <img src={assetUrl("/productos/estrellita.png")} alt="Caja de estrellitas F2257" loading="lazy" />
+          <img src={assetUrl("/productos/bola.png")} alt="Bolas de humo multicolor" loading="lazy" />
         </div>
       </section>
 

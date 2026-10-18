@@ -47,7 +47,7 @@ export async function shrinkImage(file: File) {
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("No se pudo preparar la foto.");
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/jpeg", 0.74);
+    return canvas.toDataURL("image/webp", 0.84);
   } finally {
     URL.revokeObjectURL(url);
   }
@@ -55,10 +55,11 @@ export async function shrinkImage(file: File) {
 
 export function assetUrl(path: string) {
   if (!path || path.startsWith("data:") || path.startsWith("http") || path.startsWith("blob:")) return path;
+  const normalized = path.replace(/\.jpeg$/i, ".png");
   const base = import.meta.env.BASE_URL || "/";
-  if (base === "/") return path.startsWith("/") ? path : `/${path}`;
+  if (base === "/") return normalized.startsWith("/") ? normalized : `/${normalized}`;
   const cleanBase = base.endsWith("/") ? base : `${base}/`;
-  if (path.startsWith(cleanBase)) return path;
-  return `${cleanBase}${path.replace(/^\/+/, "")}`;
+  if (normalized.startsWith(cleanBase)) return normalized;
+  return `${cleanBase}${normalized.replace(/^\/+/, "")}`;
 }
 
