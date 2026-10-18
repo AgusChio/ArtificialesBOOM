@@ -9,7 +9,7 @@ import { AVAILABILITY_LABEL, type Availability } from "../shop/types";
 type SortKey = "codigo" | "precio-asc" | "precio-desc" | "nombre";
 
 export function Catalog() {
-  const { products, add, unitPrice, priceList } = useShop();
+  const { products, add, unitPrice } = useShop();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Todas");
   const [availability, setAvailability] = useState<"todas" | Availability>("todas");
@@ -46,8 +46,7 @@ export function Catalog() {
       <header className="page-head">
         <h1>Catálogo</h1>
         <p className="lede">
-          {visible.length} {visible.length === 1 ? "código" : "códigos"} en la lista{" "}
-          {priceList === "mayorista" ? "revendedor" : "mostrador"}.
+          {visible.length} {visible.length === 1 ? "producto" : "productos"}
         </p>
       </header>
       <div className="toolbar">
@@ -138,7 +137,7 @@ export function Catalog() {
                   className="btn btn-sm"
                   type="button"
                   disabled={product.availability === "agotado"}
-                  onClick={() => showFlash(add(product.code, 1) ?? `${product.code} entró en la comanda.`)}
+                  onClick={() => showFlash(add(product.code, 1) ?? `${product.code} se sumó al carrito.`)}
                 >
                   {product.availability === "agotado" ? "Agotado" : "Sumar"}
                 </button>

@@ -50,9 +50,9 @@ export function ProductPage() {
           className="btn"
           type="button"
           disabled={product.availability === "agotado"}
-          onClick={() => showFlash(add(product.code, 1) ?? `${product.code} entró en la comanda.`)}
+          onClick={() => showFlash(add(product.code, 1) ?? `${product.code} se sumó al carrito.`)}
         >
-          {product.availability === "agotado" ? "Agotado" : "Sumar a la comanda"}
+          {product.availability === "agotado" ? "Agotado" : "Sumar al carrito"}
         </button>
       </div>
       <Toast flash={flash} />

@@ -2,7 +2,7 @@ import { Link, NavLink } from "react-router-dom";
 import { useEffect } from "react";
 import { PriceTag } from "./PriceTag";
 import { ThemeToggle } from "./ThemeToggle";
-import { assetUrl, pesos } from "../shop/format";
+import { assetUrl, pesos, whatsappLink } from "../shop/format";
 import { AVAILABILITY_LABEL } from "../shop/types";
 import { useShop } from "../shop/store";
 
@@ -19,9 +19,30 @@ export function Frame({ children }: { children: React.ReactNode }) {
     remove,
     priceList,
     session,
+    settings,
+    unitPrice,
     setPriceList,
     clearCart,
   } = shop;
+
+  const waMessage = [
+    "Hola Pirotecnia Boom, quiero hacer este pedido:",
+    "",
+    ...cart
+      .map((line) => {
+        const product = products.find((item) => item.code === line.code);
+        if (!product) return "";
+        const flag = product.availability === "consultar" ? " (a consultar)" : "";
+        return `• ${product.code} ${product.name} x ${line.qty} — ${pesos(unitPrice(product) * line.qty)}${flag}`;
+      })
+      .filter(Boolean),
+    "",
+    `Total (${cartCount} ${cartCount === 1 ? "ítem" : "ítems"}): ${pesos(cartTotal)}`,
+  ].join("\n");
+
+  const directWaUrl =
+    whatsappLink(settings.whatsapp, waMessage) ??
+    `https://api.whatsapp.com/send?text=${encodeURIComponent(waMessage)}`;
 
   useEffect(() => {
     if (!comandaOpen) return;
@@ -58,7 +79,7 @@ export function Frame({ children }: { children: React.ReactNode }) {
             className="btn cart-btn"
             type="button"
             onClick={() => setComandaOpen(true)}
-            aria-label={cartCount > 0 ? `Abrir pedido, ${cartCount} unidades` : "Abrir pedido"}
+            aria-label={cartCount > 0 ? `Abrir carrito, ${cartCount} ítems` : "Abrir carrito"}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true" className="cart-icon">
               <path
@@ -72,7 +93,7 @@ export function Frame({ children }: { children: React.ReactNode }) {
               <circle cx="9.5" cy="19.5" r="1.4" fill="currentColor" />
               <circle cx="17" cy="19.5" r="1.4" fill="currentColor" />
             </svg>
-            <span className="cart-label">Pedido</span>
+            <span className="cart-label">Carrito</span>
             {cartCount > 0 && (
               <span className="cart-count" key={cartCount}>
                 {cartCount}
@@ -117,13 +138,15 @@ export function Frame({ children }: { children: React.ReactNode }) {
       </footer>
       {comandaOpen && (
         <div className="drawer-root">
-          <button className="drawer-backdrop" type="button" aria-label="Cerrar pedido" onClick={() => setComandaOpen(false)} />
-          <aside className="drawer" role="dialog" aria-modal="true" aria-label="Comanda">
+          <button className="drawer-backdrop" type="button" aria-label="Cerrar carrito" onClick={() => setComandaOpen(false)} />
+          <aside className="drawer" role="dialog" aria-modal="true" aria-label="Carrito">
             <div className="drawer-head">
               <div>
-                <h2>Comanda</h2>
+                <h2>Carrito</h2>
                 <p className="drawer-list">
-                  {priceList === "mayorista" ? "Precios de revendedor" : "Precios de mostrador"}
+                  {cartCount === 0
+                    ? "0 ítems"
+                    : `${cartCount} ${cartCount === 1 ? "ítem" : "ítems"} en tu pedido`}
                 </p>
               </div>
               <button className="icon-button" type="button" onClick={() => setComandaOpen(false)} aria-label="Cerrar" autoFocus>
@@ -134,7 +157,7 @@ export function Frame({ children }: { children: React.ReactNode }) {
             </div>
             {cart.length === 0 ? (
               <div className="drawer-empty">
-                <p>Todavía no hay códigos. Elegí uno de la lista.</p>
+                <p>Todavía no hay productos en el carrito. Elegí uno de la lista.</p>
                 <Link className="btn" to="/catalogo" onClick={() => setComandaOpen(false)}>
                   Ir al catálogo
                 </Link>
@@ -175,14 +198,20 @@ export function Frame({ children }: { children: React.ReactNode }) {
             {cart.length > 0 && (
               <div className="drawer-foot">
                 <p className="drawer-total">
-                  <span>Total</span>
+                  <span>Total ({cartCount} {cartCount === 1 ? "ítem" : "ítems"})</span>
                   <strong>{pesos(cartTotal)}</strong>
                 </p>
-                <Link className="btn btn-block" to="/pedido" onClick={() => setComandaOpen(false)}>
-                  Completar pedido
-                </Link>
+                <a
+                  className="btn btn-block"
+                  href={directWaUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setComandaOpen(false)}
+                >
+                  Enviar pedido por WhatsApp
+                </a>
                 <button className="text-button" type="button" onClick={clearCart}>
-                  Vaciar comanda
+                  Vaciar carrito
                 </button>
               </div>
             )}

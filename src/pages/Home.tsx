@@ -106,7 +106,7 @@ export function Home() {
 
   function sumar(product: Product) {
     const error = add(product.code, 1);
-    showFlash(error ?? `${product.code} entró en la comanda.`);
+    showFlash(error ?? `${product.code} se sumó al carrito.`);
   }
 
   return (
@@ -279,7 +279,6 @@ export function Home() {
                 <p>{active.unit}</p>
                 <p>{active.brand}</p>
                 <p>{AVAILABILITY_LABEL[active.availability]}</p>
-                <p>{session?.role === "mayorista" ? "Lista revendedor" : "Lista mostrador"}</p>
               </div>
             </div>
             <div className="ticket-stub">
@@ -306,7 +305,7 @@ export function Home() {
           <p>Diciembre, año nuevo, carnaval y egresados son la temporada fuerte.</p>
           <p>{settings.whatsapp ? `WhatsApp ${settings.whatsapp}` : "El WhatsApp se carga desde el panel."}</p>
           <Link className="btn btn-block" to="/pedido">
-            Armar el mensaje
+            Ver carrito
           </Link>
         </article>
       </section>
@@ -324,7 +323,7 @@ export function Home() {
                 Puedo comprar si no soy revendedor
                 <Chevron />
               </summary>
-              <p>Sí. La lista del mostrador está abierta y el pedido sale igual por WhatsApp.</p>
+              <p>Sí. Podés armar tu carrito con los códigos y mandar el pedido directo por WhatsApp.</p>
             </details>
             <details>
               <summary>
@@ -366,7 +365,7 @@ export function Home() {
       </section>
 
       <Link className="cta-band" to="/pedido">
-        <span>Se abre tu comanda con los códigos.</span>
+        <span>Revisá tu carrito y mandalo por WhatsApp.</span>
         <Arrow />
         <strong>PEDIR</strong>
       </Link>
