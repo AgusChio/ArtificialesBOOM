@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+.env.local
+.convex
+*.log
+.agents
+.impeccable
+.taste-skill
+.taste-skill-options.txt
+skills-lock.json
+/*.jpeg
