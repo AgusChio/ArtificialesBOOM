@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { PriceTag } from "../components/PriceTag";
+import { PromoStrip } from "../components/PromoStrip";
 import { Toast, useFlash } from "../components/Toast";
 import { assetUrl } from "../shop/format";
 import { useShop } from "../shop/store";
@@ -49,6 +50,7 @@ export function Catalog() {
           {visible.length} {visible.length === 1 ? "producto" : "productos"}
         </p>
       </header>
+      <PromoStrip />
       <div className="toolbar">
         <form className="filters" onSubmit={(event) => event.preventDefault()} role="search">
           <label className="grow">

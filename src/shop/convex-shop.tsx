@@ -3,7 +3,8 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { api } from "../../convex/_generated/api";
 import { whatsappLink } from "./format";
 import { ShopContextProvider, type ShopValue } from "./store";
-import type { AccessRequest, CartLine, CheckoutInput, Order, PaymentMode, PriceList, Product, Session, Settings } from "./types";
+import { quoteLine } from "./pricing";
+import type { AccessRequest, CartLine, CheckoutInput, Order, PaymentMode, PriceList, Product, Promo, Session, Settings } from "./types";
 
 const CART_KEY = "boom-cart-v1";
 const TOKEN_KEY = "boom-convex-token";
@@ -48,6 +49,7 @@ function ConvexShop({ children }: { children: ReactNode }) {
   const session = useQuery(api.boom.currentSession, ready && token ? { token } : "skip") as Session | null | undefined;
   const orders = useQuery(api.boom.listOrders, session?.role === "admin" && token ? { token } : "skip") as Order[] | undefined;
   const accounts = useQuery(api.boom.listAccounts, session?.role === "admin" && token ? { token } : "skip");
+  const promos = useQuery(api.boom.listPromos, ready ? { token: token ?? undefined } : "skip") as Promo[] | undefined;
 
   const loginMutation = useMutation(api.boom.login);
   const logoutMutation = useMutation(api.boom.logout);
@@ -60,11 +62,14 @@ function ConvexShop({ children }: { children: ReactNode }) {
   const orderStatusMutation = useMutation(api.boom.setOrderStatus);
   const passwordMutation = useMutation(api.boom.changePassword);
   const uploadUrl = useMutation(api.boom.generateUploadUrl);
+  const savePromoMutation = useMutation(api.boom.savePromo);
+  const removePromoMutation = useMutation(api.boom.removePromo);
 
   const priceList: PriceList =
     session?.role === "mayorista" ? "mayorista" : session?.role === "admin" ? viewAs : "minorista";
 
   const list = products ?? [];
+  const promoList = promos ?? [];
   const currentSettings = settings ?? {
     whatsapp: "",
     city: "Salta",
@@ -91,17 +96,21 @@ function ConvexShop({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo<ShopValue>(() => {
+    const quoteOf = (product: Product, qty = 1) => {
+      const listPrice = priceList === "mayorista" ? (product.wholesalePrice ?? product.retailPrice) : product.retailPrice;
+      return quoteLine({ listPrice, qty, code: product.code, promos: promoList, list: priceList });
+    };
     const cartCount = cart.reduce((sum, line) => sum + line.qty, 0);
     const cartTotal = cart.reduce((sum, line) => {
       const product = list.find((item) => item.code === line.code);
       if (!product) return sum;
-      const amount = priceList === "mayorista" ? (product.wholesalePrice ?? product.retailPrice) : product.retailPrice;
-      return sum + amount * line.qty;
+      return sum + quoteOf(product, line.qty).lineTotal;
     }, 0);
     return {
       ready: ready && products !== undefined && settings !== undefined,
       mode: "convex",
       products: list,
+      promos: promoList,
       settings: currentSettings,
       session: session ?? null,
       orders: orders ?? [],
@@ -185,6 +194,14 @@ function ConvexShop({ children }: { children: ReactNode }) {
       removeProduct: async (code) => {
         if (token) await removeMutation({ token, code });
       },
+      savePromo: async (promo) => {
+        if (!token) return "Hace falta entrar como administración.";
+        return savePromoMutation({ token, ...promo, id: promo.id || undefined });
+      },
+      removePromo: async (id) => {
+        if (token) await removePromoMutation({ token, id });
+      },
+      quote: quoteOf,
       setAccountStatus: async (id, status, paymentMode: PaymentMode) => {
         if (token) await statusMutation({ token, id, status, paymentMode });
       },
@@ -198,14 +215,12 @@ function ConvexShop({ children }: { children: ReactNode }) {
         if (!token) return "No hay una sesión abierta.";
         return passwordMutation({ token, password });
       },
-      unitPrice: (product) =>
-        priceList === "mayorista" ? (product.wholesalePrice ?? product.retailPrice) : product.retailPrice,
+      unitPrice: (product) => quoteOf(product, 1).lineTotal,
       lineTotal: (code) => {
         const line = cart.find((item) => item.code === code);
         const product = list.find((item) => item.code === code);
         if (!line || !product) return 0;
-        const amount = priceList === "mayorista" ? (product.wholesalePrice ?? product.retailPrice) : product.retailPrice;
-        return amount * line.qty;
+        return quoteOf(product, line.qty).lineTotal;
       },
       cartCount,
       cartTotal,
@@ -226,11 +241,14 @@ function ConvexShop({ children }: { children: ReactNode }) {
     orders,
     passwordMutation,
     priceList,
+    promoList,
     products,
     ready,
     removeMutation,
     requestMutation,
+    removePromoMutation,
     saveMutation,
+    savePromoMutation,
     session,
     settings,
     settingsMutation,

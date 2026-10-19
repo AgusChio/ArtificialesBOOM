@@ -40,11 +40,35 @@ export interface CartLine {
   qty: number;
 }
 
+export type PromoKind = "percent" | "amount" | "price" | "nxm";
+
+export interface Promo {
+  id: string;
+  name: string;
+  detail: string;
+  badge: string;
+  active: boolean;
+  lists: PriceList[];
+  kind: PromoKind;
+  percent: number;
+  amount: number;
+  offerPrice: number;
+  buyQty: number;
+  payQty: number;
+  productCodes: string[];
+  allProducts: boolean;
+  minQty: number;
+  startsAt: string;
+  endsAt: string;
+}
+
 export interface OrderLine {
   code: string;
   name: string;
   qty: number;
   unitPrice: number;
+  lineTotal?: number;
+  promoName?: string;
   availability: Availability;
 }
 

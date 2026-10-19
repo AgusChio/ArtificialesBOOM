@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { PriceTag } from "../components/PriceTag";
+import { promoHint } from "../shop/pricing";
 import { Toast, useFlash } from "../components/Toast";
 import { assetUrl } from "../shop/format";
 import { useShop } from "../shop/store";
@@ -7,7 +8,7 @@ import { AVAILABILITY_LABEL } from "../shop/types";
 
 export function ProductPage() {
   const { code = "" } = useParams();
-  const { products, add, session } = useShop();
+  const { products, add, session, quote } = useShop();
   const product = products.find((item) => item.code.toLowerCase() === code.toLowerCase());
   const [flash, showFlash] = useFlash();
 
@@ -41,6 +42,12 @@ export function ProductPage() {
         <div className="product-price">
           <PriceTag product={product} />
         </div>
+        {(() => {
+          const offer = quote(product, 1);
+          const promo = offer.promo ?? offer.announced;
+          if (!promo) return null;
+          return <p className="product-summary">{promo.detail || promoHint(promo)}</p>;
+        })()}
         {session?.role === "mayorista" && product.minWholesale > 1 && (
           <p>Mínimo en lista revendedor: {product.minWholesale}.</p>
         )}

@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { PriceTag } from "../components/PriceTag";
+import { PromoStrip } from "../components/PromoStrip";
 import { Reveal } from "../components/Reveal";
 import { Toast, useFlash } from "../components/Toast";
 import { assetUrl } from "../shop/format";
@@ -187,6 +188,7 @@ export function Home() {
           <Reveal>
             <h2>La lista</h2>
           </Reveal>
+          <PromoStrip />
           <ul className="rows">
             {visibleProducts.map((product) => {
               const open = product.code === active?.code;

@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { passwordHash, orderNumber, pesos, whatsappLink } from "./format";
+import { lineCharge, normalizePromo, quoteLine, validatePromo, type PriceQuote } from "./pricing";
 import { STARTER_PRODUCTS, STARTER_SETTINGS } from "./seed";
 import type {
   AccessRequest,
@@ -19,6 +20,7 @@ import type {
   PaymentMode,
   PriceList,
   Product,
+  Promo,
   Session,
   Settings,
 } from "./types";
@@ -32,13 +34,19 @@ interface Database {
   accounts: Account[];
   orders: Order[];
   settings: Settings;
+  promos: Promo[];
   sessions: { token: string; accountId: string }[];
+}
+
+function hydrate(raw: Partial<Database> & Pick<Database, "products" | "accounts" | "orders" | "settings" | "sessions">): Database {
+  return { ...raw, promos: raw.promos ?? [] };
 }
 
 export interface ShopValue {
   ready: boolean;
   mode: "local" | "convex";
   products: Product[];
+  promos: Promo[];
   settings: Settings;
   session: Session | null;
   orders: Order[];
@@ -60,6 +68,9 @@ export interface ShopValue {
   ) => Promise<{ error: string | null; text: string; url: string | null; number: string }>;
   saveProduct: (product: Product) => Promise<string | null>;
   removeProduct: (code: string) => Promise<void>;
+  savePromo: (promo: Promo) => Promise<string | null>;
+  removePromo: (id: string) => Promise<void>;
+  quote: (product: Product, qty?: number) => PriceQuote;
   setAccountStatus: (
     id: string,
     status: Account["status"],
@@ -120,7 +131,10 @@ function readCart(): CartLine[] {
 function orderText(order: Order) {
   const lines = order.lines.map((line) => {
     const flag = line.availability === "consultar" ? " (a consultar)" : "";
-    return `${line.code} ${line.name} x ${line.qty} — ${pesos(line.unitPrice * line.qty)}${flag}`;
+    const charge = lineCharge(line);
+    const promo = line.promoName ? ` · ${line.promoName}` : "";
+    const list = line.promoName && charge !== line.unitPrice * line.qty ? ` (lista ${pesos(line.unitPrice * line.qty)})` : "";
+    return `${line.code} ${line.name} x ${line.qty} — ${pesos(charge)}${list}${promo}${flag}`;
   });
   return [
     `Pedido ${order.number}`,
@@ -154,7 +168,7 @@ export function LocalShop({ children }: { children: ReactNode }) {
       const saved = localStorage.getItem(DB_KEY);
       if (saved) {
         if (!cancel) {
-          setDb(JSON.parse(saved) as Database);
+          setDb(hydrate(JSON.parse(saved) as Database));
           setCart(readCart());
           setToken(localStorage.getItem(TOKEN_KEY));
         }
@@ -166,6 +180,7 @@ export function LocalShop({ children }: { children: ReactNode }) {
         products: STARTER_PRODUCTS,
         settings: STARTER_SETTINGS,
         orders: [],
+        promos: [],
         sessions: [],
         accounts: [
           {
@@ -274,16 +289,28 @@ export function LocalShop({ children }: { children: ReactNode }) {
   const value = useMemo<ShopValue | null>(() => {
     if (!db) return null;
     const cartCount = cart.reduce((sum, line) => sum + line.qty, 0);
+    const quoteOf = (product: Product, qty = 1) => {
+      const raw = db.products.find((item) => item.code === product.code);
+      const listPrice = raw ? priceOf(raw, priceList) : product.retailPrice;
+      return quoteLine({
+        listPrice,
+        qty,
+        code: product.code,
+        promos: db.promos,
+        list: priceList,
+      });
+    };
     const cartTotal = cart.reduce((sum, line) => {
       const product = db.products.find((item) => item.code === line.code);
       if (!product) return sum;
-      return sum + priceOf(product, priceList) * line.qty;
+      return sum + quoteOf(product, line.qty).lineTotal;
     }, 0);
 
     return {
       ready: true,
       mode: "local",
       products,
+      promos: db.promos,
       settings: db.settings,
       session,
       orders: session?.role === "admin" ? db.orders : [],
@@ -357,11 +384,20 @@ export function LocalShop({ children }: { children: ReactNode }) {
           if (line.qty < minimum) {
             return { ...empty, error: `${product.code} pide un mínimo de ${minimum} en esta lista.` };
           }
+          const priced = quoteLine({
+            listPrice: priceOf(product, priceList),
+            qty: line.qty,
+            code: product.code,
+            promos: db.promos,
+            list: priceList,
+          });
           lines.push({
             code: product.code,
             name: product.name,
             qty: line.qty,
-            unitPrice: priceOf(product, priceList),
+            unitPrice: priced.listPrice,
+            lineTotal: priced.lineTotal,
+            promoName: priced.promo ? priced.promo.badge || priced.promo.name : "",
             availability: product.availability,
           });
         }
@@ -376,7 +412,7 @@ export function LocalShop({ children }: { children: ReactNode }) {
           paymentMode: input.paymentMode,
           note: input.note.trim(),
           lines,
-          total: lines.reduce((sum, line) => sum + line.unitPrice * line.qty, 0),
+          total: lines.reduce((sum, line) => sum + lineCharge(line), 0),
           status: "nuevo",
         };
         commit({ ...db, orders: [order, ...db.orders] });
@@ -404,6 +440,23 @@ export function LocalShop({ children }: { children: ReactNode }) {
         if (session?.role !== "admin" || !db) return;
         commit({ ...db, products: db.products.filter((item) => item.code !== code) });
       },
+      savePromo: async (promo) => {
+        if (session?.role !== "admin") return "Hace falta entrar como administración.";
+        const next = normalizePromo({ ...promo, id: promo.id || crypto.randomUUID() });
+        const error = validatePromo(next);
+        if (error) return error;
+        const exists = db.promos.some((item) => item.id === next.id);
+        commit({
+          ...db,
+          promos: exists ? db.promos.map((item) => (item.id === next.id ? next : item)) : [next, ...db.promos],
+        });
+        return null;
+      },
+      removePromo: async (id) => {
+        if (session?.role !== "admin") return;
+        commit({ ...db, promos: db.promos.filter((item) => item.id !== id) });
+      },
+      quote: quoteOf,
       setAccountStatus: async (id, status, paymentMode) => {
         if (session?.role !== "admin") return;
         commit({
@@ -438,15 +491,12 @@ export function LocalShop({ children }: { children: ReactNode }) {
         });
         return null;
       },
-      unitPrice: (product) => {
-        const raw = db.products.find((item) => item.code === product.code);
-        return raw ? priceOf(raw, priceList) : product.retailPrice;
-      },
+      unitPrice: (product) => quoteOf(product, 1).lineTotal,
       lineTotal: (code) => {
         const line = cart.find((item) => item.code === code);
         const product = db.products.find((item) => item.code === code);
         if (!line || !product) return 0;
-        return priceOf(product, priceList) * line.qty;
+        return quoteOf(product, line.qty).lineTotal;
       },
       cartCount,
       cartTotal,

@@ -1,6 +1,8 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { PromoDesk } from "./PromoDesk";
 import { assetUrl, pesos, shrinkImage, whatsappLink } from "../shop/format";
+import { lineCharge } from "../shop/pricing";
 import { useShop } from "../shop/store";
 import { AVAILABILITY_LABEL, type Availability, type Order, type PaymentMode, type Product } from "../shop/types";
 
@@ -22,7 +24,7 @@ const emptyProduct = (): Product => ({
   image: "/productos/gorila-loco.png",
 });
 
-type AdminTab = "productos" | "pedidos" | "accesos" | "ajustes";
+type AdminTab = "productos" | "promos" | "pedidos" | "accesos" | "ajustes";
 
 export function Admin() {
   const shop = useShop();
@@ -42,6 +44,10 @@ export function Admin() {
   const pendingAccountsCount = useMemo(
     () => shop.accounts.filter((item) => item.status === "pendiente").length,
     [shop.accounts],
+  );
+  const activePromosCount = useMemo(
+    () => shop.promos.filter((item) => item.active).length,
+    [shop.promos],
   );
 
   if (shop.session?.role !== "admin") {
@@ -144,6 +150,10 @@ export function Admin() {
           <span className="admin-kpi-label">Productos</span>
           <strong>{activeProductsCount} activos</strong>
         </button>
+        <button type="button" className="admin-kpi" onClick={() => setTab("promos")}>
+          <span className="admin-kpi-label">Promos</span>
+          <strong>{activePromosCount > 0 ? `${activePromosCount} activas` : "Ninguna"}</strong>
+        </button>
         <button type="button" className="admin-kpi" onClick={() => setTab("pedidos")}>
           <span className="admin-kpi-label">Pedidos</span>
           <strong>{newOrdersCount > 0 ? `${newOrdersCount} nuevos` : `${shop.orders.length} total`}</strong>
@@ -198,6 +208,30 @@ export function Admin() {
             <span className="admin-tab-badge">{shop.products.length}</span>
           </span>
           <span className="admin-tab-label">Productos</span>
+        </button>
+
+        <button
+          className={tab === "promos" ? "admin-tab is-on" : "admin-tab"}
+          type="button"
+          role="tab"
+          aria-selected={tab === "promos"}
+          onClick={() => setTab("promos")}
+        >
+          <span className="admin-tab-icon-wrap">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" />
+            </svg>
+            {activePromosCount > 0 && <span className="admin-tab-badge">{activePromosCount}</span>}
+          </span>
+          <span className="admin-tab-label">Promos</span>
         </button>
 
         <button
@@ -288,6 +322,7 @@ export function Admin() {
       </nav>
 
       {tab === "productos" && <Products />}
+      {tab === "promos" && <PromoDesk />}
       {tab === "pedidos" && <Orders />}
       {tab === "accesos" && <Accounts />}
       {tab === "ajustes" && <SettingsForm />}
@@ -709,8 +744,9 @@ function Orders() {
                 <li key={line.code}>
                   <span>
                     <strong>{line.code}</strong> {line.name} × {line.qty}
+                    {line.promoName ? ` · ${line.promoName}` : ""}
                   </span>
-                  <span>{pesos(line.unitPrice * line.qty)}</span>
+                  <span>{pesos(lineCharge(line))}</span>
                 </li>
               ))}
             </ul>

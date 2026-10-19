@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
+import { PriceTag } from "../components/PriceTag";
 import { assetUrl, pesos, whatsappLink } from "../shop/format";
+import { formatCartLine } from "../shop/pricing";
 import { useShop } from "../shop/store";
 import { AVAILABILITY_LABEL } from "../shop/types";
 
 export function Checkout() {
-  const { cart, products, cartCount, cartTotal, settings, unitPrice, setQty, remove, clearCart } = useShop();
+  const { cart, products, cartCount, cartTotal, settings, quote, setQty, remove, clearCart } = useShop();
 
   if (cart.length === 0) {
     return (
@@ -25,8 +27,7 @@ export function Checkout() {
       .map((line) => {
         const product = products.find((item) => item.code === line.code);
         if (!product) return "";
-        const flag = product.availability === "consultar" ? " (a consultar)" : "";
-        return `• ${product.code} ${product.name} x ${line.qty} — ${pesos(unitPrice(product) * line.qty)}${flag}`;
+        return formatCartLine(product, line.qty, quote(product, line.qty));
       })
       .filter(Boolean),
     "",
@@ -55,7 +56,7 @@ export function Checkout() {
                   <span className="code-chip">{product.code}</span> {product.name}
                 </strong>
                 <span className="comanda-meta">
-                  {AVAILABILITY_LABEL[product.availability]} · {pesos(unitPrice(product) * line.qty)}
+                  {AVAILABILITY_LABEL[product.availability]} · <PriceTag product={product} qty={line.qty} />
                 </span>
                 <div className="stepper">
                   <button type="button" onClick={() => setQty(line.code, line.qty - 1)} aria-label={`Quitar uno de ${product.code}`}>

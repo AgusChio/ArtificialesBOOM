@@ -1,7 +1,10 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { accountFromToken, orderNumber, passwordHash, requireAdmin } from "./lib";
+import { pesos } from "../src/shop/format";
+import { lineCharge, normalizePromo, quoteLine, validatePromo } from "../src/shop/pricing";
 import { STARTER_PRODUCTS, STARTER_SETTINGS } from "../src/shop/seed";
+import type { Promo } from "../src/shop/types";
 
 const payment = v.union(v.literal("contado"), v.literal("cuenta_corriente"));
 
@@ -102,6 +105,34 @@ export const listProducts = query({
 export const getSettings = query({
   args: {},
   handler: async (ctx) => ctx.db.query("settings").first(),
+});
+
+export const listPromos = query({
+  args: { token: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    const account = await accountFromToken(ctx, args.token ?? null);
+    const rows = await ctx.db.query("promos").collect();
+    const visible = account?.role === "admin" ? rows : rows.filter((promo) => promo.active);
+    return visible.map((promo) => ({
+      id: promo._id,
+      name: promo.name,
+      detail: promo.detail,
+      badge: promo.badge,
+      active: promo.active,
+      lists: promo.lists,
+      kind: promo.kind,
+      percent: promo.percent,
+      amount: promo.amount,
+      offerPrice: promo.offerPrice,
+      buyQty: promo.buyQty,
+      payQty: promo.payQty,
+      productCodes: promo.productCodes,
+      allProducts: promo.allProducts,
+      minQty: promo.minQty,
+      startsAt: promo.startsAt,
+      endsAt: promo.endsAt,
+    }));
+  },
 });
 
 export const currentSession = query({
@@ -256,6 +287,8 @@ export const placeOrder = mutation({
     ) {
       return { error: "La cuenta corriente no está habilitada para este acceso.", text: "", number: "" };
     }
+    const promoRows = await ctx.db.query("promos").collect();
+    const promos: Promo[] = promoRows.map((promo) => ({ ...promo, id: promo._id }));
     const lines = [];
     for (const line of args.lines) {
       const product = await ctx.db
@@ -272,15 +305,19 @@ export const placeOrder = mutation({
       if (line.qty < minimum) {
         return { error: `${product.code} pide un mínimo de ${minimum} en esta lista.`, text: "", number: "" };
       }
+      const listPrice = priceList === "mayorista" ? product.wholesalePrice : product.retailPrice;
+      const priced = quoteLine({ listPrice, qty: line.qty, code: product.code, promos, list: priceList });
       lines.push({
         code: product.code,
         name: product.name,
         qty: line.qty,
-        unitPrice: priceList === "mayorista" ? product.wholesalePrice : product.retailPrice,
+        unitPrice: priced.listPrice,
+        lineTotal: priced.lineTotal,
+        promoName: priced.promo ? priced.promo.badge || priced.promo.name : "",
         availability: product.availability,
       });
     }
-    const total = lines.reduce((sum, line) => sum + line.unitPrice * line.qty, 0);
+    const total = lines.reduce((sum, line) => sum + lineCharge(line), 0);
     const number = orderNumber();
     await ctx.db.insert("orders", {
       number,
@@ -305,9 +342,12 @@ export const placeOrder = mutation({
       `Pago: ${args.paymentMode === "contado" ? "Contado" : "Cuenta corriente"}`,
       ...lines.map((line) => {
         const flag = line.availability === "consultar" ? " (a consultar)" : "";
-        return `${line.code} ${line.name} x ${line.qty} — $${line.unitPrice * line.qty}${flag}`;
+        const charge = lineCharge(line);
+        const promo = line.promoName ? ` · ${line.promoName}` : "";
+        const list = line.promoName && charge !== line.unitPrice * line.qty ? ` (lista ${pesos(line.unitPrice * line.qty)})` : "";
+        return `${line.code} ${line.name} x ${line.qty} — ${pesos(charge)}${list}${promo}${flag}`;
       }),
-      `Total: $${total}`,
+      `Total: ${pesos(total)}`,
       args.note.trim() ? `Nota: ${args.note.trim()}` : "",
     ]
       .filter(Boolean)
@@ -424,5 +464,87 @@ export const generateUploadUrl = mutation({
   handler: async (ctx, args) => {
     await requireAdmin(ctx, args.token);
     return ctx.storage.generateUploadUrl();
+  },
+});
+
+const promoArgs = {
+  name: v.string(),
+  detail: v.string(),
+  badge: v.string(),
+  active: v.boolean(),
+  lists: v.array(v.union(v.literal("minorista"), v.literal("mayorista"))),
+  kind: v.union(v.literal("percent"), v.literal("amount"), v.literal("price"), v.literal("nxm")),
+  percent: v.number(),
+  amount: v.number(),
+  offerPrice: v.number(),
+  buyQty: v.number(),
+  payQty: v.number(),
+  productCodes: v.array(v.string()),
+  allProducts: v.boolean(),
+  minQty: v.number(),
+  startsAt: v.string(),
+  endsAt: v.string(),
+};
+
+export const savePromo = mutation({
+  args: { token: v.string(), id: v.optional(v.string()), ...promoArgs },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.token);
+    const next = normalizePromo({
+      id: args.id ?? "",
+      name: args.name,
+      detail: args.detail,
+      badge: args.badge,
+      active: args.active,
+      lists: args.lists,
+      kind: args.kind,
+      percent: args.percent,
+      amount: args.amount,
+      offerPrice: args.offerPrice,
+      buyQty: args.buyQty,
+      payQty: args.payQty,
+      productCodes: args.productCodes,
+      allProducts: args.allProducts,
+      minQty: args.minQty,
+      startsAt: args.startsAt,
+      endsAt: args.endsAt,
+    });
+    const error = validatePromo(next);
+    if (error) return error;
+    const doc = {
+      name: next.name,
+      detail: next.detail,
+      badge: next.badge,
+      active: next.active,
+      lists: next.lists,
+      kind: next.kind,
+      percent: next.percent,
+      amount: next.amount,
+      offerPrice: next.offerPrice,
+      buyQty: next.buyQty,
+      payQty: next.payQty,
+      productCodes: next.productCodes,
+      allProducts: next.allProducts,
+      minQty: next.minQty,
+      startsAt: next.startsAt,
+      endsAt: next.endsAt,
+    };
+    if (args.id) {
+      const existingId = ctx.db.normalizeId("promos", args.id);
+      if (!existingId) return "No se encontró esa promo.";
+      await ctx.db.replace(existingId, doc);
+      return null;
+    }
+    await ctx.db.insert("promos", doc);
+    return null;
+  },
+});
+
+export const removePromo = mutation({
+  args: { token: v.string(), id: v.string() },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx, args.token);
+    const existingId = ctx.db.normalizeId("promos", args.id);
+    if (existingId) await ctx.db.delete(existingId);
   },
 });

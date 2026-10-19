@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { PriceTag } from "./PriceTag";
 import { ThemeToggle } from "./ThemeToggle";
 import { assetUrl, pesos, whatsappLink } from "../shop/format";
+import { formatCartLine } from "../shop/pricing";
 import { AVAILABILITY_LABEL } from "../shop/types";
 import { useShop } from "../shop/store";
 
@@ -21,7 +22,7 @@ export function Frame({ children }: { children: React.ReactNode }) {
     priceList,
     session,
     settings,
-    unitPrice,
+    quote,
     setPriceList,
     clearCart,
   } = shop;
@@ -35,8 +36,7 @@ export function Frame({ children }: { children: React.ReactNode }) {
       .map((line) => {
         const product = products.find((item) => item.code === line.code);
         if (!product) return "";
-        const flag = product.availability === "consultar" ? " (a consultar)" : "";
-        return `• ${product.code} ${product.name} x ${line.qty} — ${pesos(unitPrice(product) * line.qty)}${flag}`;
+        return formatCartLine(product, line.qty, quote(product, line.qty));
       })
       .filter(Boolean),
     "",
@@ -245,7 +245,7 @@ export function Frame({ children }: { children: React.ReactNode }) {
                           <span className="code-chip">{product.code}</span> {product.name}
                         </strong>
                         <span className="comanda-meta">
-                          {AVAILABILITY_LABEL[product.availability]} · <PriceTag product={product} />
+                          {AVAILABILITY_LABEL[product.availability]} · <PriceTag product={product} qty={line.qty} />
                         </span>
                         <div className="stepper">
                           <button type="button" onClick={() => setQty(line.code, line.qty - 1)} aria-label={`Quitar uno de ${product.code}`}>
