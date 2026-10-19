@@ -1,12 +1,14 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { PriceTag } from "../components/PriceTag";
 import { assetUrl, pesos, whatsappLink } from "../shop/format";
 import { formatCartLine } from "../shop/pricing";
-import { useShop } from "../shop/store";
+import { useShop, whatsappCheckout } from "../shop/store";
 import { AVAILABILITY_LABEL } from "../shop/types";
 
 export function Checkout() {
-  const { cart, products, cartCount, cartTotal, settings, quote, setQty, remove, clearCart } = useShop();
+  const { cart, products, cartCount, cartTotal, settings, quote, session, setQty, remove, clearCart, placeOrder } = useShop();
+  const [saleError, setSaleError] = useState("");
 
   if (cart.length === 0) {
     return (
@@ -80,7 +82,23 @@ export function Checkout() {
           <span>Total ({cartCount} {cartCount === 1 ? "ítem" : "ítems"})</span>
           <strong>{pesos(cartTotal)}</strong>
         </p>
-        <a className="btn btn-block" href={directWaUrl} target="_blank" rel="noreferrer">
+        {saleError && <p className="form-error">{saleError}</p>}
+        <a
+          className="btn btn-block"
+          href={directWaUrl}
+          target="_blank"
+          rel="noreferrer"
+          onClick={async (event) => {
+            event.preventDefault();
+            const result = await placeOrder(whatsappCheckout(session));
+            if (result.error) {
+              setSaleError(result.error);
+              return;
+            }
+            setSaleError("");
+            window.open(result.url ?? directWaUrl, "_blank", "noopener,noreferrer");
+          }}
+        >
           Enviar pedido por WhatsApp
         </a>
         <button className="text-button" type="button" onClick={clearCart}>

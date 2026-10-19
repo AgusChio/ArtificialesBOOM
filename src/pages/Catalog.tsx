@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { PriceTag } from "../components/PriceTag";
+import { StockSwitch } from "../components/StockSwitch";
 import { PromoStrip } from "../components/PromoStrip";
 import { Toast, useFlash } from "../components/Toast";
 import { assetUrl } from "../shop/format";
@@ -133,6 +134,7 @@ export function Catalog() {
                   {product.brand} · {product.unit}
                 </p>
               </div>
+              <StockSwitch product={product} />
               <div className="catalog-buy">
                 <PriceTag product={product} />
                 <button

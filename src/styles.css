@@ -1241,6 +1241,67 @@ textarea { min-height: 110px; resize: vertical; }
   background: var(--bg);
 }
 .admin-promo-lead { flex: 1; margin: 0; max-width: 68ch; color: var(--muted); }
+
+.stock-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.stock-switch input {
+  appearance: none;
+  width: 46px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  position: relative;
+  cursor: pointer;
+  flex: none;
+}
+.stock-switch input::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+.stock-switch input:checked { background: var(--field); border-color: var(--field); }
+.stock-switch input:checked::after { transform: translateX(18px); background: var(--field-ink); }
+.product-card .stock-switch,
+.product-info .stock-switch { margin: 4px 8px 0; }
+
+.sales-title { font-size: 28px; margin: 8px 0 12px; }
+.sales-kpis { margin-top: 4px; }
+.sales-rank {
+  list-style: none;
+  margin: 0 0 28px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.sales-rank li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface);
+}
+@media (prefers-reduced-motion: reduce) {
+  .stock-switch input::after { transition: none; }
+}
 .ticket .price-note, .ticket-stub .price-note { color: inherit; opacity: 0.85; }
 
 .empty {
@@ -1636,8 +1697,15 @@ textarea { min-height: 110px; resize: vertical; }
   box-shadow: var(--shadow-sm);
 }
 
-.admin-product-card.is-hidden {
-  opacity: 0.65;
+.admin-product-card.is-hidden,
+.admin-product-card.is-out {
+  opacity: 0.72;
+}
+
+.admin-product-actions {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
 }
 
 .admin-product-card > img {
@@ -2233,8 +2301,11 @@ textarea { min-height: 110px; resize: vertical; }
   }
   .admin-product-card > img { width: 64px; height: 64px; }
   .admin-product-body h2 { font-size: 21px; }
-  .admin-edit-btn {
+  .admin-product-actions {
     grid-column: 1 / -1;
+    justify-items: stretch;
+  }
+  .admin-edit-btn {
     width: 100%;
     min-height: 42px;
   }

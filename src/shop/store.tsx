@@ -89,6 +89,16 @@ export interface ShopValue {
 
 const ShopContext = createContext<ShopValue | null>(null);
 
+export function whatsappCheckout(session: Session | null): CheckoutInput {
+  return {
+    customerName: session?.business || session?.name || "Cliente WhatsApp",
+    phone: "Sin teléfono",
+    zone: session?.zone || "Salta Capital",
+    paymentMode: session?.paymentMode === "cuenta_corriente" ? "cuenta_corriente" : "contado",
+    note: "Pedido enviado por WhatsApp",
+  };
+}
+
 export function useShop() {
   const value = useContext(ShopContext);
   if (!value) throw new Error("La tienda no está lista.");

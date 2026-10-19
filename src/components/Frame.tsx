@@ -1,11 +1,11 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { PriceTag } from "./PriceTag";
 import { ThemeToggle } from "./ThemeToggle";
 import { assetUrl, pesos, whatsappLink } from "../shop/format";
 import { formatCartLine } from "../shop/pricing";
 import { AVAILABILITY_LABEL } from "../shop/types";
-import { useShop } from "../shop/store";
+import { useShop, whatsappCheckout } from "../shop/store";
 
 export function Frame({ children }: { children: React.ReactNode }) {
   const shop = useShop();
@@ -25,7 +25,9 @@ export function Frame({ children }: { children: React.ReactNode }) {
     quote,
     setPriceList,
     clearCart,
+    placeOrder,
   } = shop;
+  const [saleError, setSaleError] = useState("");
 
   const isAdminDashboard = location.pathname.startsWith("/admin") && session?.role === "admin";
 
@@ -271,12 +273,23 @@ export function Frame({ children }: { children: React.ReactNode }) {
                   <span>Total ({cartCount} {cartCount === 1 ? "ítem" : "ítems"})</span>
                   <strong>{pesos(cartTotal)}</strong>
                 </p>
+                {saleError && <p className="form-error">{saleError}</p>}
                 <a
                   className="btn btn-block"
                   href={directWaUrl}
                   target="_blank"
                   rel="noreferrer"
-                  onClick={() => setComandaOpen(false)}
+                  onClick={async (event) => {
+                    event.preventDefault();
+                    const result = await placeOrder(whatsappCheckout(session));
+                    if (result.error) {
+                      setSaleError(result.error);
+                      return;
+                    }
+                    setSaleError("");
+                    window.open(result.url ?? directWaUrl, "_blank", "noopener,noreferrer");
+                    setComandaOpen(false);
+                  }}
                 >
                   Enviar pedido por WhatsApp
                 </a>

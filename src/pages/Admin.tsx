@@ -1,6 +1,8 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { StockSwitch } from "../components/StockSwitch";
 import { PromoDesk } from "./PromoDesk";
+import { SalesDesk } from "./SalesDesk";
 import { assetUrl, pesos, shrinkImage, whatsappLink } from "../shop/format";
 import { lineCharge } from "../shop/pricing";
 import { useShop } from "../shop/store";
@@ -24,7 +26,7 @@ const emptyProduct = (): Product => ({
   image: "/productos/gorila-loco.png",
 });
 
-type AdminTab = "productos" | "promos" | "pedidos" | "accesos" | "ajustes";
+type AdminTab = "productos" | "promos" | "ventas" | "pedidos" | "accesos" | "ajustes";
 
 export function Admin() {
   const shop = useShop();
@@ -235,6 +237,28 @@ export function Admin() {
         </button>
 
         <button
+          className={tab === "ventas" ? "admin-tab is-on" : "admin-tab"}
+          type="button"
+          role="tab"
+          aria-selected={tab === "ventas"}
+          onClick={() => setTab("ventas")}
+        >
+          <span className="admin-tab-icon-wrap">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <span className="admin-tab-label">Ventas</span>
+        </button>
+
+        <button
           className={tab === "pedidos" ? "admin-tab is-on" : "admin-tab"}
           type="button"
           role="tab"
@@ -323,6 +347,7 @@ export function Admin() {
 
       {tab === "productos" && <Products />}
       {tab === "promos" && <PromoDesk />}
+      {tab === "ventas" && <SalesDesk />}
       {tab === "pedidos" && <Orders />}
       {tab === "accesos" && <Accounts />}
       {tab === "ajustes" && <SettingsForm />}
@@ -420,7 +445,10 @@ function Products() {
 
       <ul className="admin-product-list">
         {filteredProducts.map((product) => (
-          <li key={product.code} className={!product.active ? "admin-product-card is-hidden" : "admin-product-card"}>
+          <li
+            key={product.code}
+            className={`admin-product-card${product.active ? "" : " is-hidden"}${product.availability === "agotado" ? " is-out" : ""}`}
+          >
             <img src={assetUrl(product.image)} alt={product.name} width="72" height="72" />
             <div className="admin-product-body">
               <div className="admin-product-badges">
@@ -446,6 +474,8 @@ function Products() {
                 )}
               </div>
             </div>
+            <div className="admin-product-actions">
+              <StockSwitch product={product} />
             <button
               className="btn btn-sm admin-edit-btn"
               type="button"
@@ -467,6 +497,7 @@ function Products() {
               </svg>
               <span>Editar</span>
             </button>
+            </div>
           </li>
         ))}
       </ul>

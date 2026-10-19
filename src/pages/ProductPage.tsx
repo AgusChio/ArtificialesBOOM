@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { PriceTag } from "../components/PriceTag";
+import { StockSwitch } from "../components/StockSwitch";
 import { promoHint } from "../shop/pricing";
 import { Toast, useFlash } from "../components/Toast";
 import { assetUrl } from "../shop/format";
@@ -39,6 +40,7 @@ export function ProductPage() {
           {product.brand} · {product.category} · {product.unit}
         </p>
         <span className={`badge badge-${product.availability}`}>{AVAILABILITY_LABEL[product.availability]}</span>
+        <StockSwitch product={product} />
         <div className="product-price">
           <PriceTag product={product} />
         </div>
