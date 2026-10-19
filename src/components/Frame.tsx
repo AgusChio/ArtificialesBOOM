@@ -1,4 +1,4 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { PriceTag } from "./PriceTag";
 import { ThemeToggle } from "./ThemeToggle";
@@ -8,6 +8,7 @@ import { useShop } from "../shop/store";
 
 export function Frame({ children }: { children: React.ReactNode }) {
   const shop = useShop();
+  const location = useLocation();
   const {
     cart,
     products,
@@ -24,6 +25,8 @@ export function Frame({ children }: { children: React.ReactNode }) {
     setPriceList,
     clearCart,
   } = shop;
+
+  const isAdminDashboard = location.pathname.startsWith("/admin") && session?.role === "admin";
 
   const waMessage = [
     "Hola Pirotecnia Boom, quiero hacer este pedido:",
@@ -136,6 +139,73 @@ export function Frame({ children }: { children: React.ReactNode }) {
           <p>Prohibida la venta a menores de 16 años · 2026</p>
         </div>
       </footer>
+      {!isAdminDashboard && (
+        <nav className="bottom-nav" aria-label="Navegación móvil">
+          <NavLink to="/" end className="bottom-nav-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 3l8 6.5v10a1.5 1.5 0 0 1-1.5 1.5h-4.5v-6h-4v6H5.5A1.5 1.5 0 0 1 4 19.5v-10L12 3z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>Inicio</span>
+          </NavLink>
+          <NavLink to="/catalogo" className="bottom-nav-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" strokeWidth="2" />
+              <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" strokeWidth="2" />
+              <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" strokeWidth="2" />
+              <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" strokeWidth="2" />
+            </svg>
+            <span>Catálogo</span>
+          </NavLink>
+          <NavLink to="/mayorista" className="bottom-nav-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <circle cx="7" cy="7" r="1.5" fill="currentColor" />
+            </svg>
+            <span>Mayorista</span>
+          </NavLink>
+          <NavLink to="/aviso" className="bottom-nav-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <span>Aviso</span>
+          </NavLink>
+          <NavLink to="/admin" className="bottom-nav-item">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <span>Panel</span>
+          </NavLink>
+        </nav>
+      )}
       {comandaOpen && (
         <div className="drawer-root">
           <button className="drawer-backdrop" type="button" aria-label="Cerrar carrito" onClick={() => setComandaOpen(false)} />
